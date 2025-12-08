@@ -2,8 +2,8 @@
 package polling
 
 import (
-	"github.com/MrEAlderson/FritzBox-LocalRedirect/pkg/avm"
-	"github.com/MrEAlderson/FritzBox-LocalRedirect/pkg/util"
+	"github.com/MrEAlderson/FritzBox_LocalRedirect/pkg/avm"
+	"github.com/MrEAlderson/FritzBox_LocalRedirect/pkg/util"
 	"log/slog"
 	"net"
 	"net/url"

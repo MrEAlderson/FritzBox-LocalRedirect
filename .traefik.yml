@@ -1,7 +1,7 @@
 displayName: "FritzBox Local-Redirect"
 type: middleware
 icon: icon.png
-import: github.com/MrEAlderson/FritzBox-LocalRedirect
+import: github.com/MrEAlderson/FritzBox_LocalRedirect
 summary: "Fallback to local hostname in case client visits from a local network"
 
 testData:

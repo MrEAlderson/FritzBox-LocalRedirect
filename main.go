@@ -1,9 +1,9 @@
-package localredirect
+package FritzBox_LocalRedirect
 
 import (
 	"context"
 	"log/slog"
-	"github.com/MrEAlderson/FritzBox-LocalRedirect/pkg/avm"
+	"github.com/MrEAlderson/FritzBox_LocalRedirect/pkg/avm"
 	"net"
 	"net/http"
 	"strings"
