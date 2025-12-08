@@ -133,9 +133,11 @@ func (a *LRPlugin) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Get our ip
 	ip := req.Header.Get("X-Forwarded-For")
 	var ips []string
+	fmt.Println("------1 ", ip)
 
 	if ip == "" {
 		ip = req.RemoteAddr
+		fmt.Println("------2 ", ip)
 		// remove port
 		pieces := strings.Split(ip, ":")
 		ips = make([]string, 0, len(pieces)-1)
