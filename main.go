@@ -133,11 +133,17 @@ func (a *LRPlugin) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Get our ip
 	ip := req.Header.Get("X-Forwarded-For")
 	var ips []string
-	fmt.Println("------1 ", ip)
+
+	if ip == "" {
+		ip = req.Header.Get("X-Real-IP")
+	}
+
+	if ip == "" {
+		ip = req.Header.Get("CF-Connecting-IP")
+	}
 
 	if ip == "" {
 		ip = req.RemoteAddr
-		fmt.Println("------2 ", ip)
 		// remove port
 		pieces := strings.Split(ip, ":")
 		ipBlocks := pieces[0 : len(pieces)-1]
@@ -155,7 +161,6 @@ func (a *LRPlugin) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Redirect?
 	for _, rawIp := range ips {
 		ip := net.ParseIP(rawIp)
-		fmt.Println("------ ", rawIp)
 
 		if ip != nil && a.fritzIps.any_match(ip) {
 			// Redirect!
