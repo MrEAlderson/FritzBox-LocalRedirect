@@ -3,7 +3,7 @@ package localredirect
 import (
 	"context"
 	"log/slog"
-	"marcel/localredirect/pkg/avm"
+	"github.com/MrEAlderson/FritzBox-LocalRedirect/pkg/avm"
 	"net"
 	"net/http"
 	"strings"

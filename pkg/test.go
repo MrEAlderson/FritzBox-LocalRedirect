@@ -4,7 +4,7 @@ import (
 	//"context"
 	"fmt"
 	"log/slog"
-	"marcel/localredirect/pkg/avm"
+	"github.com/MrEAlderson/FritzBox-LocalRedirect/pkg/avm"
 	"net"
 	"time"
 )
