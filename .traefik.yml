@@ -1,0 +1,10 @@
+displayName: "FritzBox Local-Redirect"
+type: middleware
+icon: icon.png
+import: marcel/localredirect
+summary: "Fallback to local hostname in case client visits from a local network"
+
+testData:
+  Headers:
+    X-Demo: test
+    X-URL: '{{URL}}'

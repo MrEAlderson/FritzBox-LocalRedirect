@@ -1,0 +1,162 @@
+package localredirect
+
+import (
+	"context"
+	"log/slog"
+	"marcel/localredirect/pkg/avm"
+	"net"
+	"net/http"
+	"strings"
+	"time"
+)
+
+type FritzIps struct {
+	v4          net.IP
+	v6          net.IP
+	v6Prefix    *net.IPNet
+	refreshTime time.Time
+}
+
+func (ips FritzIps) any_match(ip net.IP) bool {
+	if ips.v4 != nil && ips.v4.Equal(ip) {
+		return true
+	}
+	if ips.v6 != nil && ips.v6.Equal(ip) {
+		return true
+	}
+
+	if ips.v6Prefix != nil {
+		ipMasked := ip.Mask(ips.v6Prefix.Mask)
+
+		return ips.v6Prefix.IP.Equal(ipMasked)
+	}
+
+	return false
+}
+
+func (ips FritzIps) all_nil() bool {
+	return ips.v4 == nil && ips.v6 == nil && ips.v6Prefix == nil
+}
+
+// Config the plugin configuration.
+type Config struct {
+	FritzURL    string
+	RefreshTime string
+	TimeoutTime string
+	LocalHost   string
+}
+
+// CreateConfig creates the default plugin configuration.
+func CreateConfig() *Config {
+	return &Config{
+		FritzURL:    "http://192.168.178.1:49000",
+		RefreshTime: "30s",
+		TimeoutTime: "5s",
+		LocalHost:   "my-server:123",
+	}
+}
+
+// Demo a Demo plugin.
+type LRPlugin struct {
+	next         http.Handler
+	refreshTime  time.Duration
+	fritzFetcher avm.FritzBox
+	localHost    string
+	fritzIps     *FritzIps
+}
+
+// New created a new Demo plugin.
+func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
+	refreshTime, _ := time.ParseDuration(config.RefreshTime)
+	timeoutDuration, _ := time.ParseDuration(config.TimeoutTime)
+	rootLogger := slog.Default()
+
+	fritzbox := avm.FritzBox{
+		Url:     config.FritzURL,
+		Timeout: timeoutDuration,
+		Logger:  rootLogger,
+	}
+
+	return &LRPlugin{
+		next:         next,
+		refreshTime:  refreshTime,
+		fritzFetcher: fritzbox,
+		localHost:    config.LocalHost,
+		fritzIps:     nil,
+	}, nil
+}
+
+func FetchIps(a *LRPlugin) {
+	v4, _ := a.fritzFetcher.GetWanIpv4()
+	v6, _ := a.fritzFetcher.GetwanIpv6()
+	v6Prefix, _ := a.fritzFetcher.GetIpv6Prefix()
+	fritzIps := &FritzIps{
+		v4:          v4,
+		v6:          v6,
+		v6Prefix:    v6Prefix,
+		refreshTime: time.Now(),
+	}
+
+	if fritzIps != nil && !fritzIps.all_nil() {
+		a.fritzIps = fritzIps
+	}
+}
+
+func (a *LRPlugin) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	// force refresh now
+	if a.fritzIps == nil {
+		FetchIps(a)
+
+		// Enqueue refresh
+	} else {
+		now := time.Now()
+		last := a.fritzIps.refreshTime
+
+		if last.Add(a.refreshTime).After(now) {
+			go FetchIps(a)
+		}
+	}
+
+	// No fritz info, not worth the effort
+	if a.fritzIps == nil {
+		a.next.ServeHTTP(rw, req)
+		return
+	}
+
+	// Get our ip
+	ip := req.Header.Get("X-Forwarded-For")
+	var ips []string
+
+	if ip == "" {
+		ip = req.RemoteAddr
+		// remove port
+		pieces := strings.Split(ip, ":")
+		ips = make([]string, 0, len(pieces)-1)
+		ip = strings.Join(ips, ":")
+		ips = []string{ip}
+
+	} else {
+		ips = strings.Split(ip, ",")
+
+		for index, ip := range ips {
+			ips[index] = strings.TrimSpace(ip)
+		}
+	}
+
+	// Redirect?
+	for _, rawIp := range ips {
+		ip := net.ParseIP(rawIp)
+
+		if ip != nil && a.fritzIps.any_match(ip) {
+			// Redirect!
+			url := req.URL
+			url.Host = a.localHost
+
+			http.Redirect(rw, req, url.String(), http.StatusTemporaryRedirect)
+			return
+		}
+	}
+
+	// Nope, remote access :)
+	a.next.ServeHTTP(rw, req)
+}
