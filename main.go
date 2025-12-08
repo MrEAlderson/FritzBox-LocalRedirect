@@ -140,8 +140,8 @@ func (a *LRPlugin) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		fmt.Println("------2 ", ip)
 		// remove port
 		pieces := strings.Split(ip, ":")
-		ips = make([]string, 0, len(pieces)-1)
-		ip = strings.Join(ips, ":")
+		ipBlocks := pieces[0 : len(pieces)-1]
+		ip = strings.Join(ipBlocks, ":")
 		ips = []string{ip}
 
 	} else {

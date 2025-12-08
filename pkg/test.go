@@ -4,9 +4,11 @@ import (
 	//"context"
 	"fmt"
 	"log/slog"
-	"github.com/MrEAlderson/FritzBox_LocalRedirect/pkg/avm"
 	"net"
+	"strings"
 	"time"
+
+	"github.com/MrEAlderson/FritzBox_LocalRedirect/pkg/avm"
 )
 
 /*
@@ -81,6 +83,12 @@ func (ip1 IP) match(ip2 IP, prefixLen int) bool {
 }*/
 
 func main() {
+	ip := "192.168.178.64:5135"
+	var ips []string
+	pieces := strings.Split(ip, ":")
+	ips = pieces[0 : len(pieces)-1]
+	ip = strings.Join(ips, ":")
+	fmt.Println(ip)
 	/*r := &net.Resolver{
 		PreferGo: true,
 		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
@@ -91,7 +99,7 @@ func main() {
 		},
 	}
 
-	ips, _ := r.LookupIP(context.Background(), "ip", "lks15u3my4ceqnr9.myfritz.net")
+	ips, _ := r.LookupIP(context.Background(), "ip", "l5gfd163xvqc.myfritz.net")
 	ipObjs := make([]IP, len(ips))
 	var index int = 0
 
@@ -118,7 +126,7 @@ func main() {
 		refreshTime: time.Now(),
 	}
 
-	//ourIP := net.ParseIP("2a02:8206:98df:7000:f560:239c:9dac:dee2")
+	//ourIP := net.ParseIP("2j12:8202:98df:7000:f860:239c:9dac:dee2")
 	fmt.Println(fritzIps)
 	fmt.Println(fritzIps.all_nil())
 	/*for _, ip := range ipObjs {
