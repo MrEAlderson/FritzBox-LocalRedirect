@@ -127,7 +127,7 @@ func parseGetIPv6Prefix(data []byte) (*net.IPNet, error) {
 			}
 
 			address = v
-		} else if start.Name.Local == "NewIPv6Prefix" {
+		} else if start.Name.Local == "NewPrefixLength" {
 			if err := dec.DecodeElement(&v, &start); err != nil {
 				return nil, err
 			}
