@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MrEAlderson/FritzBox_LocalRedirect/pkg/avm"
+	"github.com/MrEAlderson/FritzBox-LocalRedirect/pkg/avm"
 )
 
 /*
